@@ -39,6 +39,21 @@
             align-items: center;
             min-height: 100vh;
             padding: 20px;
+            transition: filter 0.3s ease, background 0.5s ease;
+            overflow-x: hidden;
+        }
+
+        /* 超華麗極光抽卡背景特效 */
+        body.aurora-glow {
+            background: linear-gradient(125deg, #2c1a4d, #0f2b46, #14443b, #441432);
+            background-size: 400% 400%;
+            animation: auroraBG 4s ease infinite;
+        }
+
+        @keyframes auroraBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         /* 頂部頁面切換標籤 */
@@ -94,6 +109,25 @@
             max-width: 850px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             position: relative;
+            transition: transform 0.15s ease-in-out;
+        }
+
+        /* 機台搖晃震動特效 */
+        .shake-machine {
+            animation: machineVibrate 0.4s linear infinite;
+        }
+        @keyframes machineVibrate {
+            0% { transform: translate(2px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(0px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(2px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(2px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
         }
 
         /* 頁面分流顯示控管 */
@@ -148,7 +182,7 @@
             border: 2px solid #224466;
             position: relative;
             gap: 15px;
-            overflow: hidden;
+            overflow: visible; /* 允許碰撞粒子飛出 */
         }
         .battle-character {
             display: flex;
@@ -182,32 +216,47 @@
         
         /* 戰鬥打擊物理動效與閃爍紅光 */
         @keyframes playerCharge {
-            0% { transform: translateX(0); }
-            50% { transform: translateX(40px) scale(1.05); }
-            100% { transform: translateX(0); }
+            0% { transform: translateX(0) rotate(0); }
+            50% { transform: translateX(50px) rotate(8deg) scale(1.1); }
+            100% { transform: translateX(0) rotate(0); }
         }
         @keyframes aiCharge {
-            0% { transform: translateX(0); }
-            50% { transform: translateX(-40px) scale(1.05); }
-            100% { transform: translateX(0); }
+            0% { transform: translateX(0) rotate(0); }
+            50% { transform: translateX(-50px) rotate(-8deg) scale(1.1); }
+            100% { transform: translateX(0) rotate(0); }
         }
         @keyframes hurtShake {
             0% { transform: translate(2px, 1px) rotate(0deg); filter: brightness(2) saturate(2) contrast(1.5); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); background-color: rgba(255,0,0,0.5); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(0px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(2px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(2px, 2px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-2deg); background-color: rgba(255,0,0,0.5); }
+            20% { transform: translate(-4px, 0px) rotate(2deg); }
+            30% { transform: translate(0px, 3px) rotate(0deg); }
+            40% { transform: translate(2px, -1px) rotate(2deg); }
+            50% { transform: translate(-1px, 3px) rotate(-2deg); }
+            60% { transform: translate(-4px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-2deg); }
+            80% { transform: translate(-1px, -1px) rotate(2deg); }
+            90% { transform: translate(3px, 2px) rotate(0deg); }
             100% { transform: translate(1px, -2px) rotate(-1deg); filter: none; }
         }
         
-        .animate-player-attack { animation: playerCharge 0.4s ease-in-out; }
-        .animate-ai-attack { animation: aiCharge 0.4s ease-in-out; }
+        .animate-player-attack { animation: playerCharge 0.4s cubic-bezier(0.25, 0.8, 0.25, 1.25); }
+        .animate-ai-attack { animation: aiCharge 0.4s cubic-bezier(0.25, 0.8, 0.25, 1.25); }
         .animate-hurt { animation: hurtShake 0.4s ease-in-out; }
+
+        /* 物理碰撞粒子容器 */
+        .sparkle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 99;
+            animation: particleFly 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+        }
+        @keyframes particleFly {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
 
         .hp-bar-container {
             width: 100%;
@@ -284,9 +333,37 @@
             border: 2px solid #555;
             position: relative;
             aspect-ratio: 2.5 / 3.5;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.1s ease, filter 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
             filter: grayscale(100%) brightness(25%);
             opacity: 0.8;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        /* 雷射閃膜光影（Shine Overlay） */
+        .card-slot.active::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(105deg, 
+                rgba(255,255,255,0) 30%, 
+                rgba(255,255,255,0.13) 40%, 
+                rgba(255,255,255,0.28) 50%, 
+                rgba(255,255,255,0.13) 60%, 
+                rgba(255,255,255,0) 70%
+            );
+            background-size: 200% 100%;
+            background-position: -100% 0;
+            border-radius: inherit;
+            pointer-events: none;
+            z-index: 2;
+            mix-blend-mode: color-dodge;
+            transition: background-position 0.5s ease;
+        }
+
+        /* 滑鼠指上去時，光膜產生折射滑過 */
+        .card-slot.active:hover::before {
+            background-position: 100% 0;
         }
 
         /* 稀有度發光特效 */
@@ -294,7 +371,7 @@
             position: absolute;
             bottom: 3px;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translateX(-50%) translateZ(10px); /* 浮出立體感 */
             font-size: 0.6rem;
             font-weight: 900;
             padding: 1px 4px;
@@ -346,13 +423,8 @@
             animation: unlockGlow 0.5s ease-out;
         }
 
-        .card-slot.active:hover {
-            transform: scale(1.1); 
-            z-index: 2;
-        }
-
         .binder-grid.select-mode .card-slot.active:hover {
-            transform: none;
+            transform: none !important;
             z-index: auto;
         }
 
@@ -743,9 +815,7 @@
                 background-repeat: no-repeat !important;
             }
 
-            /* 修正左右相接處的圓角：
-               左卡(正面)右側不設圓角，右卡(背面)左側不設圓角，
-               這樣折起來貼合時，邊角圓弧最完美！ */
+            /* 修正左右相接處的圓角 */
             .print-card-front {
                 border-radius: 0.35cm 0 0 0.35cm !important; 
                 border-right: none !important; /* 拔除中間的分界實線，改為隱形折線，列印對折超精準 */
@@ -766,7 +836,7 @@
         <button class="tab-btn battle-tab" onclick="switchPage('battle')">⚔️ 代碼對戰</button>
     </div>
 
-    <div class="main-container">
+    <div class="main-container" id="main-machine-container">
         
         <!-- 頁面一：卡片販賣機 -->
         <div id="machine-page" class="page active">
@@ -826,7 +896,7 @@
 
             <!-- 選擇出戰卡牌區 -->
             <div id="battle-prep-zone">
-                <h3 style="color: var(--gold); margin-bottom: 10px; font-size: 0.95rem;">第一步：選擇你已擁擁有的卡片出戰</h3>
+                <h3 style="color: var(--gold); margin-bottom: 10px; font-size: 0.95rem;">第一步：選擇你已擁有的卡片出戰</h3>
                 <div class="card-selector-grid" id="battle-card-selectors"></div>
             </div>
 
@@ -846,7 +916,7 @@
                     </div>
                 </div>
 
-                <div style="font-size: 1.5rem; font-weight: bold; color: var(--gold); font-style: italic;">VS</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: var(--gold); font-style: italic; z-index: 10;">VS</div>
 
                 <!-- AI對手區 -->
                 <div class="battle-character" id="ai-character-zone">
@@ -910,7 +980,7 @@
     <div class="toast" id="toast-message">提示訊息</div>
 
     <script>
-        // 定義屬性與預設等級 (抽卡時會動態分配稀有度)[cite: 1]
+        // 定義屬性與預設等級[cite: 1]
         const cardDatabase = [
             { id: 1, col: 0, row: 0, type: 'Grass' }, { id: 2, col: 1, row: 0, type: 'Fire' }, { id: 3, col: 2, row: 0, type: 'Water' }, { id: 4, col: 3, row: 0, type: 'Grass' }, { id: 5, col: 4, row: 0, type: 'Fire' }, { id: 6, col: 5, row: 0, type: 'Water' }, { id: 7, col: 6, row: 0, type: 'Grass' },
             { id: 8, col: 0, row: 1, type: 'Fire' },  { id: 9, col: 1, row: 1, type: 'Water' }, { id: 10, col: 2, row: 1, type: 'Grass' }, { id: 11, col: 3, row: 1, type: 'Fire' }, { id: 12, col: 4, row: 1, type: 'Water' }, { id: 13, col: 5, row: 1, type: 'Grass' }, { id: 14, col: 6, row: 1, type: 'Fire' },
@@ -967,6 +1037,7 @@
             }
         }
 
+        // 初始化集卡冊與機台
         function initDisplay() {
             const machineWindow = document.getElementById('display-window-machine');
             const binderWindow = document.getElementById('display-window-binder');
@@ -1001,6 +1072,24 @@
                 binderWindow.appendChild(bSlot);
             });
             updateStats();
+        }
+
+        // 3D 傾斜卡片特效 (Tilt Effect)
+        function applyTiltEffect(element) {
+            element.addEventListener('mousemove', (e) => {
+                const rect = element.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const xc = rect.width / 2;
+                const yc = rect.height / 2;
+                const angleX = (yc - y) / 5; // 傾斜角度系數
+                const angleY = (x - xc) / 5;
+                element.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateY(${angleY}deg) scale(1.08)`;
+            });
+
+            element.addEventListener('mouseleave', () => {
+                element.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
+            });
         }
 
         function handleCardClick(cardId) {
@@ -1061,7 +1150,11 @@
             userCoins--;
             updateStats();
 
-            // 1. 抽取隨機卡片與隨機等級[cite: 1]
+            // 1. 機台震動特效
+            const machineContainer = document.getElementById('main-machine-container');
+            machineContainer.classList.add('shake-machine');
+
+            // 2. 抽取隨機卡片與隨機等級[cite: 1]
             const randomIndex = Math.floor(Math.random() * cardDatabase.length);
             const drawnCard = cardDatabase[randomIndex];
             const drawnRarity = rollRarity(); // 隨機分配等級[cite: 1]
@@ -1088,7 +1181,14 @@
             tag.style.backgroundColor = rarities[drawnRarity].color;
             outputArea.appendChild(tag);
 
+            // 如果是高級卡，背景觸發極光特效
+            if(drawnRarity !== 'C' && drawnRarity !== 'R') {
+                document.body.classList.add('aurora-glow');
+            }
+
             setTimeout(() => {
+                // 停止震動並彈出卡片
+                machineContainer.classList.remove('shake-machine');
                 outputArea.classList.add('dispense');
                 
                 // 更新販賣機與集卡冊中對應卡牌的外框特效[cite: 1]
@@ -1097,6 +1197,10 @@
                 
                 mSlot.className = `card-slot active rarity-${drawnRarity}`;
                 bSlot.className = `card-slot active rarity-${drawnRarity}`;
+
+                // 綁定 3D 懸停特效
+                applyTiltEffect(mSlot);
+                applyTiltEffect(bSlot);
 
                 // 若該卡片已有標籤，先清除再重繪[cite: 1]
                 mSlot.querySelectorAll('.rarity-tag').forEach(el => el.remove());
@@ -1132,11 +1236,12 @@
                         alert("🎉 恭喜！您已成功集齊全套 21 張卡片，完成終極大滿貫！");
                     }, 800);
                 }
-            }, 100);
+            }, 500); // 延長震動至 0.5s
 
             setTimeout(() => {
                 isDrawing = false;
-            }, 1200);
+                document.body.classList.remove('aurora-glow'); // 抽完還原背景
+            }, 2500);
         }
 
         function previewCurrentDrawnCard() {
@@ -1298,6 +1403,8 @@
                     slot.style.backgroundPosition = `${posX}% ${posY}%`;
                     slot.onclick = () => selectPlayerBattleCard(card, rarity);
 
+                    applyTiltEffect(slot); // 3D 卡片旋轉傾斜
+
                     const slotTag = document.createElement('div');
                     slotTag.className = 'rarity-tag';
                     slotTag.innerText = rarity;
@@ -1319,8 +1426,11 @@
             const posX = (card.col * 100) / 6;
             const posY = (card.row * 100) / 2;
             const playerSlot = document.getElementById('player-battle-card');
+            playerSlot.className = `battle-card-slot active rarity-${rarity}`;
             playerSlot.style.backgroundPosition = `${posX}% ${posY}%`;
             playerSlot.style.backgroundImage = 'var(--card-image-url)';
+
+            applyTiltEffect(playerSlot);
 
             // 更新稀有度標章[cite: 1]
             const badge = document.getElementById('player-rarity-badge');
@@ -1340,7 +1450,6 @@
         }
 
         function setupAiOpponent() {
-            // AI 隨機抽卡並有機率攜帶稀有度
             const randomId = Math.floor(Math.random() * cardDatabase.length) + 1;
             aiActiveCard = cardDatabase.find(c => c.id === randomId);
             aiActiveRarity = rollRarity(); // AI 隨機取得階級
@@ -1353,8 +1462,11 @@
             const posX = (aiActiveCard.col * 100) / 6;
             const posY = (aiActiveCard.row * 100) / 2;
             const aiSlot = document.getElementById('ai-battle-card');
+            aiSlot.className = `battle-card-slot active rarity-${aiActiveRarity}`;
             aiSlot.style.backgroundPosition = `${posX}% ${posY}%`;
             aiSlot.style.backgroundImage = 'var(--card-image-url)';
+
+            applyTiltEffect(aiSlot);
 
             // 更新 AI 稀有度標章[cite: 1]
             const badge = document.getElementById('ai-rarity-badge');
@@ -1396,6 +1508,43 @@
             return 1;
         }
 
+        // 動態生成粒子火花特效 (物理粒子撞擊)
+        function createSparks(element, count) {
+            const rect = element.getBoundingClientRect();
+            const arena = document.getElementById('battle-arena-zone');
+            const arenaRect = arena.getBoundingClientRect();
+
+            // 定位至卡片碰撞接觸點 (卡片中心偏右或偏左)
+            const x = rect.left - arenaRect.left + (rect.width / 2);
+            const y = rect.top - arenaRect.top + (rect.height / 2);
+
+            for (let i = 0; i < count; i++) {
+                const spark = document.createElement('div');
+                spark.className = 'sparkle';
+                spark.style.left = `${x}px`;
+                spark.style.top = `${y}px`;
+
+                // 隨機發散方向與飛行距離
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 40 + Math.random() * 80;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+
+                spark.style.setProperty('--tx', `${tx}px`);
+                spark.style.setProperty('--ty', `${ty}px`);
+
+                // 隨機霓虹亮色系
+                const colors = ['#ffd700', '#00f3ff', '#da00ff', '#ff4757', '#2ecc71'];
+                spark.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                spark.style.boxShadow = `0 0 6px ${spark.style.backgroundColor}`;
+
+                arena.appendChild(spark);
+
+                // 動畫結束後徹底清除 DOM 釋放資源
+                setTimeout(() => spark.remove(), 600);
+            }
+        }
+
         function playerAction(action) {
             document.getElementById('btn-attack').disabled = true;
             document.getElementById('btn-defend').disabled = true;
@@ -1421,7 +1570,10 @@
                 }
 
                 setTimeout(() => {
-                    // 2. 觸發 AI 受擊閃紅震動動畫[cite: 1]
+                    // 2. 在雙方中間爆發物理火花粒子
+                    createSparks(document.getElementById('ai-battle-card'), 20);
+
+                    // 3. 觸發 AI 受擊閃紅震動動畫[cite: 1]
                     aZone.classList.add('animate-hurt');
                     battleState.aiHP = Math.max(0, battleState.aiHP - finalDmg);
                     log += `你使用招式，對 AI 造成了 ${finalDmg} 點巨額傷害！ ${multiplier === 2 ? '💥 屬性克制雙倍效果！' : ''}`;
@@ -1430,7 +1582,6 @@
                     updateHpBars();
                 }, 200);
 
-                // 清理動畫 Class
                 setTimeout(() => {
                     pZone.classList.remove('animate-player-attack');
                     aZone.classList.remove('animate-hurt');
@@ -1475,7 +1626,10 @@
                 }
 
                 setTimeout(() => {
-                    // 2. 玩家受擊震動與閃紅光[cite: 1]
+                    // 2. 生成我方受擊火花粒子
+                    createSparks(document.getElementById('player-battle-card'), 20);
+
+                    // 3. 玩家受擊震動與閃紅光[cite: 1]
                     pZone.classList.add('animate-hurt');
                     battleState.playerHP = Math.max(0, battleState.playerHP - finalDmg);
                     log += `AI 發動猛攻！對你造成了 ${finalDmg} 點傷害！ ${multiplier === 2 ? '💥 屬性克制雙倍效果！' : ''}`;
@@ -1528,6 +1682,16 @@
                 renderBattleSelectors();
                 document.getElementById('battle-log-screen').innerText = `對戰結束！可再次從上方點擊挑選卡牌，開啟下一輪激鬥！`;
             }, 3500);
+        }
+
+        // 共通彈出式 Toast 訊息提示
+        function showToast(msg) {
+            const toast = document.getElementById('toast-message');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
         }
 
         initDisplay();
